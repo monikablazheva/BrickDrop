@@ -45,17 +45,6 @@ int randomBrickSize(int maxSize) {
 	return randomNum;
 }
 
-bool isEmptyLine(string line) { //if each charcter of the line is "_"(empty) return true
-
-	for (size_t i = 0; i < FIELD_COLS; i++)
-	{
-		if (line[i] != '_') {
-			return false;
-		}
-	}
-	return true;
-}
-
 string newBrick(int maxSize) {
 
 	//a brick is either " "(empty) or a string.
@@ -81,22 +70,23 @@ string newBrick(int maxSize) {
 	return newBrick;
 }
 
-string newLine() {
+bool isUpper(const char ch) {
+	if (ch >= 'A' && ch <= 'Z') return true;
+	return false;
+}
 
-	string line;
-
-	while (line.size() < FIELD_COLS) {
-
-		if (isBrickEmpty()) {
-			line += "_";
-		}
-		else line += newBrick(FIELD_COLS - line.size());
-
+int lengthBrick(string line, int index) {
+	if (!isUpper(line[index])) {
+		cout << "Exception: invalid brick start index";
+		return -1;
+	}
+	
+	index++;
+	int count = 1;
+	for (size_t i = index; !isUpper(line[i]) && line[i]!='_'; i++)
+	{
+		count++;
 	}
 
-	if (isEmptyLine(line)) {
-		newLine();
-	}
-
-	return line;
+	return count;
 }
