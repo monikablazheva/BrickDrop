@@ -129,6 +129,10 @@
   <ItemGroup>
     <ClCompile Include="BrickDrop.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Timing.h" />
+    <ClInclude Include="UserLogic.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
