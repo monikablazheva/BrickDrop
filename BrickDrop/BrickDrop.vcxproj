@@ -130,6 +130,8 @@
     <ClCompile Include="BrickDrop.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BricksLogic.h" />
+    <ClInclude Include="FieldLogic.h" />
     <ClInclude Include="Timing.h" />
     <ClInclude Include="UserLogic.h" />
   </ItemGroup>
