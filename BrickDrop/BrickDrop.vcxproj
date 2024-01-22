@@ -132,6 +132,8 @@
   <ItemGroup>
     <ClInclude Include="BricksLogic.h" />
     <ClInclude Include="FieldLogic.h" />
+    <ClInclude Include="GameLoop.h" />
+    <ClInclude Include="Print.h" />
     <ClInclude Include="Timing.h" />
     <ClInclude Include="UserLogic.h" />
   </ItemGroup>

@@ -9,3 +9,7 @@ void timing() {
 	system("cls");
 }
 
+void timingAdditional() {
+	this_thread::sleep_for(2000ms);
+}
+

@@ -10,6 +10,12 @@ const int FIELD_COLS = 8;
 const int MAX_BRICK_SIZE = 4;
 const int ALPHABET_SIZE = 25;
 
+void swap(char& a, char& b) {
+	int temp = a;
+	a = b;
+	b = temp;
+}
+
 int randomNumber(int start, int end) {
 
 	static random_device rd;
@@ -18,6 +24,42 @@ int randomNumber(int start, int end) {
 	int randomNumber = dis(gen);
 
 	return randomNumber;
+}
+
+bool isFieldEmptyValidation(const vector<string> field) {
+
+	if (field.empty()) {
+		cout << "Exception: EMPTY FIELD!";
+		return true;
+	}
+	return false;
+}
+
+void printField(const vector<string> field, int score) {
+
+	if (isFieldEmptyValidation(field)) {
+		return;
+	}
+
+	timing();
+
+	cout << "Score: " << score << endl;
+	cout << endl;
+
+	for (auto str : field) {
+		cout << str << endl;
+	}
+}
+
+bool isEmptyLine(string line) { //if each charcter of the line is "_"(empty) return true
+
+	for (size_t i = 0; i < FIELD_COLS; i++)
+	{
+		if (line[i] != '_') {
+			return false;
+		}
+	}
+	return true;
 }
 
 bool isBrickEmpty() {
@@ -77,16 +119,246 @@ bool isUpper(const char ch) {
 
 int lengthBrick(string line, int index) {
 	if (!isUpper(line[index])) {
-		cout << "Exception: invalid brick start index";
+		cout << "Exception: invalid BRICK BEGINNING index";
 		return -1;
 	}
 	
 	index++;
 	int count = 1;
-	for (size_t i = index; !isUpper(line[i]) && line[i]!='_'; i++)
+	for (size_t i = index; (i < FIELD_COLS) && (!isUpper(line[i])) && (line[i]!='_'); i++)
 	{
 		count++;
 	}
 
 	return count;
+}
+
+int destinationIndex(char direction, int startIndex, int brickLen) {
+	int destinationIndex = 0;
+
+	if (direction == 'r') {
+		destinationIndex = startIndex + brickLen;
+	}
+	else if (direction == 'l') {
+		destinationIndex = startIndex - brickLen;
+	}
+
+	return destinationIndex;
+}
+
+bool isValidBrickMove(string line, int destinationIdx) {
+
+	if (destinationIdx < 0 || destinationIdx >= FIELD_COLS || line[destinationIdx] != '_') {
+		cout << "Invalid brick move";
+		return false;
+	}
+	return true;
+}
+
+void moveBrickInLine(string& line, int startIndex, int destination, int brickLen) {
+
+	int endOfBrick = startIndex + brickLen - 1;
+
+	if (startIndex < destination) //RIGTH
+	{
+		int destinationOfBrickEnd = destination + brickLen - 1;
+		if (!isValidBrickMove(line, destinationOfBrickEnd)) {
+			return;
+		}
+
+		for (int i = endOfBrick; i >= startIndex; i--)
+		{
+			for (int j = i; j < destinationOfBrickEnd; j++)
+			{
+				swap(line[j], line[j + 1]);
+			}
+			destinationOfBrickEnd--;
+		}
+	}
+
+	else if (startIndex > destination) //LEFT
+	{
+		int destinationOfBrickStart = destination;
+		if (!isValidBrickMove(line, destinationOfBrickStart)) {
+			return;
+		}
+
+		for (int i = startIndex; i <= endOfBrick; i++)
+		{
+			for (int j = i; j > destinationOfBrickStart; j--)
+			{
+				swap(line[j], line[j - 1]);
+			}
+			destinationOfBrickStart++;
+		}
+	}
+}
+
+void dropBrick(vector<string>& field, int score) {
+
+	bool hasDroped = false;
+	int bottom = FIELD_ROWS - 1;
+
+	for (int i = 1; i < bottom; i++) {
+
+		if (!isEmptyLine(field[i])) {
+			for (int j = 0; j < FIELD_COLS; j++)
+			{
+				if (isUpper(field[i][j]))
+				{
+					int brickLen = lengthBrick(field[i], j);
+					bool canDrop = true;
+					for (int k = 0; k < brickLen; k++)
+					{
+						if (field[i + 1][j + k] != '_')
+						{
+							canDrop = false;
+							break;
+						}
+					}
+
+					if (canDrop)
+					{
+						for (int k = 0; k < brickLen; k++)
+						{
+							swap(field[i + 1][j + k], field[i][(j + k)]);
+						}
+						j += brickLen - 1;
+						hasDroped = true;
+
+					}
+				}
+			}
+		}
+	}
+
+	if (hasDroped) {
+		printField(field, score);
+		dropBrick(field, score);
+	}
+}
+
+
+bool isFullLine(string line) {
+	for (size_t i = 0; i < FIELD_COLS; i++)
+	{
+		if (line[i] == '_') {
+			return false;
+		}
+	}
+	return true;
+}
+
+void clearLine(string& line) {
+	for (size_t i = 0; i < line.size(); i++)
+	{
+		line[i] = '_';
+	}
+}
+
+void checkForFullLines(vector<string>& field, int& score) {
+	if (isFieldEmptyValidation(field)) {
+		return;
+	}
+
+	for (size_t i = 1; i < FIELD_ROWS; i++)
+	{
+		if (isFullLine(field[i])) {
+			clearLine(field[i]);
+			score += 10;
+			checkForFullLines(field, score);
+			printField(field, score);
+			//checkForFullLines(field, score);
+		}
+	}
+}
+
+string newLine() {
+
+	string line;
+
+	while (line.size() < FIELD_COLS) {
+
+		if (isBrickEmpty()) {
+			line += "_";
+		}
+		else line += newBrick(FIELD_COLS - line.size());
+
+	}
+
+	if (isEmptyLine(line)) {
+		newLine();
+	}
+
+	return line;
+}
+
+vector<string> generateField() {
+
+	vector<string> field;
+
+	for (size_t i = 0; i < FIELD_ROWS; i++)
+	{
+		field.push_back("________");
+	}
+	return field;
+}
+
+void addNewLine(vector<string>& field) {
+
+	if (isFieldEmptyValidation(field)) {
+		return;
+	}
+
+	field.erase(field.begin()); //removes first line
+	field.push_back(newLine()); //adds last line
+
+}
+
+void input(int& line, int& index, char& direction, int& length) {
+
+	//LINE INPUT AND VALIDATION
+	cout << "Enter line (starting from the bottom): ";
+	cin >> line;
+	if (line < 1 || line > FIELD_ROWS - 1) {
+		cout << "Exception: INVALID LINE index" << endl;
+		return;
+	}
+
+	//BRICK INPUT AND VALIDATION
+	cout << "Beginning index of the brick you want to move: ";
+	cin >> index;
+	if (index < 0 || index >= FIELD_COLS) {
+		cout << "Exception: INVALID BRICK index" << endl;
+		return;
+	}
+
+	//DIRECTION INPUT AND VALIDATION
+	cout << "Direction (l for left or r for rigth): ";
+	cin >> direction;
+	if (!(direction == 'l' || direction == 'r')) {
+		cout << "Exception: INVALID DIRECTION symbol" << endl;
+		return;
+	}
+
+	//LENGTH INPUT AND VALIDATION
+	cout << "Length of the move: ";
+	cin >> length;
+	if (length <= 0 || length >= FIELD_COLS) {
+		cout << "Exception: INVALID length" << endl;
+		return;
+	}
+}
+
+void updateLine(vector<string>& field) {
+	int row, startIndex, length;
+	char direction;
+	input(row, startIndex, direction, length); //GET DATA FROM USER
+
+	int indexLine = FIELD_ROWS - row;
+	string line = field[indexLine]; //LINE TO UPDATE
+	int destinationIdx = destinationIndex(direction, startIndex, length);
+	int brickLen = lengthBrick(line, startIndex);
+	moveBrickInLine(line, startIndex, destinationIdx, brickLen);
+	field[indexLine] = line;
 }
