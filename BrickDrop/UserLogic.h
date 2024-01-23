@@ -1,36 +1,90 @@
+/**
+*
+Solution to course project # 3
+Introduction to programming course
+Faculty of Mathematics and Informatics of Sofia University
+Winter semester 2023/2024
+*
+@author Monika Blazheva
+@idnumber 7MI0600350
+@compiler VC
+*
+User login and registration helper file
+*
+*/
+
 #pragma once
 #include <iostream>
 #include <string>
+#include <fstream>
 #include "Timing.h"
 
 using namespace std;
 
-bool loginUser(const string username, const string password) {
+fstream db;
+ofstream dbInput;
+bool userExists = false;
 
-	string usernameStream = "monika"; //ToDo ---> stream.get
-	string passwordStream = "test123!";
+bool loginUser(string username, string password) {
 
-	if (username == usernameStream && password == passwordStream) {
+	db.open("Database.txt");
+	dbInput.open("Database.txt", ios::app);
 
-		cout << "Login successful" << endl;
+	if (db.is_open()) {
+		string line;
+		while (getline(db, line)) {	//check if there is an existing user with entered name and password
+			if (line == (username + ";" + password)) {
+				userExists = true;
+				break;
+			}
+		}
+		if (userExists) { //if there is an existing user break the loop and output success
+			cout << "Login successful" << endl;
+			return true;
+		}
 
-		return true;
+		cout << "Incorrect username or password" << endl;
+		timing();
 	}
 
-	cout << "Incorrect username or password" << endl;
-	timing();
-
+	dbInput.close();
+	db.close(); //close connections
 	return false;
 }
 
 bool registerNewUser(const string username, const string password) {
-	//ToDo ---> stream.add
 
-	cout << "Register successful!" << endl;
-	cout << "You will be loged int automatically" << endl;
-	loginUser(username, password);
+	db.open("Database.txt"); //opening a read-only connection to file
+	dbInput.open("Database.txt", ios::app);	//opening a write connection to file
+	if (db.is_open()) {
+		string line;
+		while (getline(db, line)) {	//check every line for the registered user
+			string usernameInFile;
+			for (int i = 0; i < line.length(); i++)	//get the username
+			{
+				if (line[i] == ' ') break;
+				usernameInFile += line[i];
+			}
+			if (username == usernameInFile) { //check if a username in in the file is equal to entered username. This way a username cannot be used more than once					userExists = true;
+				userExists = true;
+				cout << "User with that name already exists! Try to log in!" << endl;
+				return false;
+			}
+		}
+	
+		if (!userExists) {	// if the user doesn't exist create new one
+			string newUser = username + ";" + password;
+			dbInput << newUser << endl;
+			cout << "Register successful!" << endl;
+			dbInput.close();
+			db.close(); //close connections
 
-	return true;
+			cout << "You will be loged int automatically" << endl;
+			loginUser(username, password);
+			return true;
+		}
+	}
+	return false;
 }
 
 bool userChoice(string& username, string& password) {
@@ -65,4 +119,3 @@ bool userChoice(string& username, string& password) {
 	cout << "Enjoy the game!" << endl;
 	return true;
 }
-
