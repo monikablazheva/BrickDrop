@@ -1,11 +1,6 @@
 #include <iostream>
 #include <string>
-#include <vector>
-#include <random>
-#include "Timing.h"
 #include "UserLogic.h"
-#include "BricksLogic.h"
-#include "FieldLogic.h"
 #include "GameLoop.h"
 
 using namespace std;

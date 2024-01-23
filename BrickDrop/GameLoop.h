@@ -2,9 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "BricksLogic.h"
-#include "FieldLogic.h"
-#include "Print.h"
+#include "BricksAndFieldLogic.h"
 
 bool isGameOver(const vector<string> field) {
 	if (!isEmptyLine(field.front())) {
@@ -24,22 +22,18 @@ void startGame() {
 	while (!isGameOver(field)) {
 		addNewLine(field);
 		printField(field, score);
-		//timingAdditional();
 		checkForFullLines(field, score);
 
-		dropBrick(field, score);
+		dropBricksAllFieldRecursive(field, score);
 		printField(field, score);
 		checkForFullLines(field, score);
 
 		updateLine(field);
 		printField(field, score);
-		//timingAdditional();
 		checkForFullLines(field, score);
 
-		dropBrick(field, score);
+		dropBricksAllFieldRecursive(field, score);
 		printField(field, score);
-		checkForFullLines(field, score);
-
 	}
 
 	cout << "Score: " << score << endl;

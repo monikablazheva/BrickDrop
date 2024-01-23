@@ -26,16 +26,10 @@
     <ClInclude Include="Timing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BricksLogic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FieldLogic.h">
+    <ClInclude Include="BricksAndFieldLogic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameLoop.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Print.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

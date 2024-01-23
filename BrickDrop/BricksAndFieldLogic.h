@@ -10,6 +10,7 @@ const int FIELD_COLS = 8;
 const int MAX_BRICK_SIZE = 4;
 const int ALPHABET_SIZE = 25;
 
+#pragma region "HELPERS"
 void swap(char& a, char& b) {
 	int temp = a;
 	a = b;
@@ -24,6 +25,66 @@ int randomNumber(int start, int end) {
 	int randomNumber = dis(gen);
 
 	return randomNumber;
+}
+
+char randomLetter() {
+	char randomLetter = 'a' + randomNumber(0, ALPHABET_SIZE);
+	return randomLetter;
+}
+
+bool isUpper(const char ch) {
+	if (ch >= 'A' && ch <= 'Z') return true;
+	return false;
+}
+
+void input(int& line, int& index, char& direction, int& length) {
+
+	//LINE INPUT AND VALIDATION
+	cout << "Enter line (starting from the bottom): ";
+	cin >> line;
+	if (line < 1 || line > FIELD_ROWS - 1) {
+		cout << "Exception: INVALID LINE index" << endl;
+		return;
+	}
+
+	//BRICK INPUT AND VALIDATION
+	cout << "Beginning index of the brick you want to move: ";
+	cin >> index;
+	if (index < 0 || index >= FIELD_COLS) {
+		cout << "Exception: INVALID BRICK index" << endl;
+		return;
+	}
+
+	//DIRECTION INPUT AND VALIDATION
+	cout << "Direction (l for left or r for rigth): ";
+	cin >> direction;
+	if (!(direction == 'l' || direction == 'r')) {
+		cout << "Exception: INVALID DIRECTION symbol" << endl;
+		return;
+	}
+
+	//LENGTH INPUT AND VALIDATION
+	cout << "Length of the move: ";
+	cin >> length;
+	if (length <= 0 || length >= FIELD_COLS) {
+		cout << "Exception: INVALID length" << endl;
+		return;
+	}
+}
+
+#pragma endregion "HELPERS"
+
+#pragma region "FIELD LOGIC"
+
+vector<string> generateField() {
+
+	vector<string> field;
+
+	for (size_t i = 0; i < FIELD_ROWS; i++)
+	{
+		field.push_back("________");
+	}
+	return field;
 }
 
 bool isFieldEmptyValidation(const vector<string> field) {
@@ -51,16 +112,13 @@ void printField(const vector<string> field, int score) {
 	}
 }
 
-bool isEmptyLine(string line) { //if each charcter of the line is "_"(empty) return true
+#pragma endregion "FIELD LOGIC"
 
-	for (size_t i = 0; i < FIELD_COLS; i++)
-	{
-		if (line[i] != '_') {
-			return false;
-		}
-	}
-	return true;
-}
+#pragma region "BRICKS LOGIC"
+
+bool isEmptyLine(string line);
+
+string newLine();
 
 bool isBrickEmpty() {
 	int chance = randomNumber(0, 1);
@@ -68,11 +126,6 @@ bool isBrickEmpty() {
 		return true;
 	}
 	return false;
-}
-
-char randomLetter() {
-	char randomLetter = 'a' + randomNumber(0, ALPHABET_SIZE);
-	return randomLetter;
 }
 
 int randomBrickSize(int maxSize) {
@@ -89,7 +142,7 @@ int randomBrickSize(int maxSize) {
 
 string newBrick(int maxSize) {
 
-	//a brick is either " "(empty) or a string.
+	//a brick is either "_"(empty) or a string.
 	//If it's a string it has one beginning upper letter, the rest are lower, max size = 4
 
 	string newBrick = "";
@@ -110,11 +163,6 @@ string newBrick(int maxSize) {
 	}
 
 	return newBrick;
-}
-
-bool isUpper(const char ch) {
-	if (ch >= 'A' && ch <= 'Z') return true;
-	return false;
 }
 
 int lengthBrick(string line, int index) {
@@ -151,6 +199,88 @@ bool isValidBrickMove(string line, int destinationIdx) {
 	if (destinationIdx < 0 || destinationIdx >= FIELD_COLS || line[destinationIdx] != '_') {
 		cout << "Invalid brick move";
 		return false;
+	}
+	return true;
+}
+
+#pragma endregion "BRICKS LOGIC"
+
+#pragma region "DROP BRICKS"
+
+bool canDrop(const vector<string> field, int i, int j, int brickLen) {
+
+	bool canDrop = true;
+	for (int k = 0; k < brickLen; k++)
+	{
+		if (field[i + 1][j + k] != '_')
+		{
+			canDrop = false;
+			break;
+		}
+	}
+
+	return canDrop;
+}
+
+void swapCurrentBrick(vector<string>& field, int i, int j, int brickLen) {
+	for (int k = 0; k < brickLen; k++)
+	{
+		swap(field[i + 1][j + k], field[i][(j + k)]);
+	}
+}
+
+void searchForBricksLine(vector<string>& field, int i, bool& hasDropped) {
+	for (int j = 0; j < FIELD_COLS; j++)
+	{
+		if (isUpper(field[i][j]))
+		{
+			int brickLen = lengthBrick(field[i], j);
+			bool canDropCurrentBrick = canDrop(field, i, j, brickLen);
+
+			if (canDropCurrentBrick)
+			{
+				swapCurrentBrick(field, i, j, brickLen);
+				j += brickLen - 1;
+				hasDropped = true;
+
+			}
+		}
+	}
+}
+
+void dropBricksAllField(vector<string>& field, bool& hasDropped) {
+	int bottom = FIELD_ROWS - 1;
+
+	for (int i = 1; i < bottom; i++) {
+
+		if (!isEmptyLine(field[i])) {
+			searchForBricksLine(field, i, hasDropped);
+		}
+	}
+}
+
+void dropBricksAllFieldRecursive(vector<string>& field, int score) {
+
+	bool hasDropped = false;
+	dropBricksAllField(field, hasDropped);
+
+	if (hasDropped) {
+		printField(field, score);
+		dropBricksAllFieldRecursive(field, score);
+	}
+}
+
+#pragma endregion "DROP BRICKS"
+
+#pragma region "LINES LOGIC"
+
+bool isEmptyLine(string line) { //if each charcter of the line is "_"(empty) return true
+
+	for (size_t i = 0; i < FIELD_COLS; i++)
+	{
+		if (line[i] != '_') {
+			return false;
+		}
 	}
 	return true;
 }
@@ -194,51 +324,6 @@ void moveBrickInLine(string& line, int startIndex, int destination, int brickLen
 	}
 }
 
-void dropBrick(vector<string>& field, int score) {
-
-	bool hasDroped = false;
-	int bottom = FIELD_ROWS - 1;
-
-	for (int i = 1; i < bottom; i++) {
-
-		if (!isEmptyLine(field[i])) {
-			for (int j = 0; j < FIELD_COLS; j++)
-			{
-				if (isUpper(field[i][j]))
-				{
-					int brickLen = lengthBrick(field[i], j);
-					bool canDrop = true;
-					for (int k = 0; k < brickLen; k++)
-					{
-						if (field[i + 1][j + k] != '_')
-						{
-							canDrop = false;
-							break;
-						}
-					}
-
-					if (canDrop)
-					{
-						for (int k = 0; k < brickLen; k++)
-						{
-							swap(field[i + 1][j + k], field[i][(j + k)]);
-						}
-						j += brickLen - 1;
-						hasDroped = true;
-
-					}
-				}
-			}
-		}
-	}
-
-	if (hasDroped) {
-		printField(field, score);
-		dropBrick(field, score);
-	}
-}
-
-
 bool isFullLine(string line) {
 	for (size_t i = 0; i < FIELD_COLS; i++)
 	{
@@ -268,9 +353,19 @@ void checkForFullLines(vector<string>& field, int& score) {
 			score += 10;
 			checkForFullLines(field, score);
 			printField(field, score);
-			//checkForFullLines(field, score);
 		}
 	}
+}
+
+void addNewLine(vector<string>& field) {
+
+	if (isFieldEmptyValidation(field)) {
+		return;
+	}
+
+	field.erase(field.begin()); //removes first line
+	field.push_back(newLine()); //adds last line
+
 }
 
 string newLine() {
@@ -293,63 +388,6 @@ string newLine() {
 	return line;
 }
 
-vector<string> generateField() {
-
-	vector<string> field;
-
-	for (size_t i = 0; i < FIELD_ROWS; i++)
-	{
-		field.push_back("________");
-	}
-	return field;
-}
-
-void addNewLine(vector<string>& field) {
-
-	if (isFieldEmptyValidation(field)) {
-		return;
-	}
-
-	field.erase(field.begin()); //removes first line
-	field.push_back(newLine()); //adds last line
-
-}
-
-void input(int& line, int& index, char& direction, int& length) {
-
-	//LINE INPUT AND VALIDATION
-	cout << "Enter line (starting from the bottom): ";
-	cin >> line;
-	if (line < 1 || line > FIELD_ROWS - 1) {
-		cout << "Exception: INVALID LINE index" << endl;
-		return;
-	}
-
-	//BRICK INPUT AND VALIDATION
-	cout << "Beginning index of the brick you want to move: ";
-	cin >> index;
-	if (index < 0 || index >= FIELD_COLS) {
-		cout << "Exception: INVALID BRICK index" << endl;
-		return;
-	}
-
-	//DIRECTION INPUT AND VALIDATION
-	cout << "Direction (l for left or r for rigth): ";
-	cin >> direction;
-	if (!(direction == 'l' || direction == 'r')) {
-		cout << "Exception: INVALID DIRECTION symbol" << endl;
-		return;
-	}
-
-	//LENGTH INPUT AND VALIDATION
-	cout << "Length of the move: ";
-	cin >> length;
-	if (length <= 0 || length >= FIELD_COLS) {
-		cout << "Exception: INVALID length" << endl;
-		return;
-	}
-}
-
 void updateLine(vector<string>& field) {
 	int row, startIndex, length;
 	char direction;
@@ -362,3 +400,5 @@ void updateLine(vector<string>& field) {
 	moveBrickInLine(line, startIndex, destinationIdx, brickLen);
 	field[indexLine] = line;
 }
+
+#pragma endregion "LINES LOGIC"
